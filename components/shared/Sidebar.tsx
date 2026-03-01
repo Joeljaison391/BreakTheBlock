@@ -9,15 +9,19 @@ import {
     User,
     Flame,
     Zap,
+    MessageSquare,
+    Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
 import { formatPoints } from "@/lib/utils";
 
 const navItems = [
-    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Dashboard", href: "/", icon: LayoutDashboard },
     { label: "Goals", href: "/goals", icon: Target },
-    { label: "Community", href: "/community", icon: Users },
+    { label: "Feed", href: "/feed", icon: Users },
+    { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
+    { label: "Chat", href: "/chat", icon: MessageSquare },
     { label: "Profile", href: "/profile", icon: User },
 ];
 
@@ -40,13 +44,14 @@ export function Sidebar() {
             </div>
 
             {/* Nav */}
-            <nav className="flex flex-1 flex-col gap-1 p-3">
+            <nav id="tour-step-nav" className="flex flex-1 flex-col gap-1 p-3">
                 {navItems.map((item) => {
                     const active = pathname === item.href || pathname.startsWith(item.href + "/");
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
+                            id={`tour-step-nav-${item.label.toLowerCase()}`}
                             className={cn(
                                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
                                 active
@@ -68,16 +73,16 @@ export function Sidebar() {
             {user && (
                 <div className="border-t border-border p-4">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                        <span className="font-medium text-foreground">{user.display_name}</span>
+                        <span className="font-medium text-foreground">{user.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 text-xs">
                             <Zap className="h-3.5 w-3.5 text-accent" />
-                            <span className="font-semibold text-accent">{formatPoints(user.total_points)} pts</span>
+                            <span className="font-semibold text-accent">{formatPoints(user.points)} pts</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-xs">
                             <Flame className="h-3.5 w-3.5 text-primary" />
-                            <span className="font-semibold text-primary">{user.streak_days}d streak</span>
+                            <span className="font-semibold text-primary">{user.streak}d streak</span>
                         </div>
                     </div>
                 </div>

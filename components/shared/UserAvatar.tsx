@@ -1,7 +1,7 @@
 "use client";
 
 import { cn, getInitials } from "@/lib/utils";
-import type { MockUser } from "@/lib/mock-auth";
+import type { MockUser } from "@/lib/mockData";
 
 interface UserAvatarProps {
     user: MockUser | null;
@@ -30,12 +30,12 @@ export function UserAvatar({ user, size = "md", className }: UserAvatarProps) {
         );
     }
 
-    if (user.avatar_url) {
+    if (user.avatar) {
         return (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-                src={user.avatar_url}
-                alt={user.display_name}
+                src={user.avatar}
+                alt={user.name}
                 className={cn("rounded-full object-cover", sizeMap[size], className)}
             />
         );
@@ -49,7 +49,8 @@ export function UserAvatar({ user, size = "md", className }: UserAvatarProps) {
                 className
             )}
         >
-            {getInitials(user.display_name)}
+            {getInitials(user.name)}
         </div>
+
     );
 }
