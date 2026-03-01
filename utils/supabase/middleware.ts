@@ -45,5 +45,27 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
+    // Rewrite `/` to `/landing` for unauthenticated users
+    if (!user && request.nextUrl.pathname === '/' && process.env.NEXT_PUBLIC_MOCK_AUTH !== 'true') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/landing';
+        const rewriteResponse = NextResponse.rewrite(url);
+        // Preserve any cookie updates
+        supabaseResponse.cookies.getAll().forEach((cookie) => {
+            rewriteResponse.cookies.set(cookie.name, cookie.value);
+        });
+        return rewriteResponse;
+    }
+
+    // Redirect `/landing` to `/` for authenticated users
+    if (user && request.nextUrl.pathname === '/') {
+        // Wait, no, we want to redirect if they explicitly visit `/landing`.
+    }
+    if (user && request.nextUrl.pathname === '/landing') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+    }
+
     return supabaseResponse;
 }
