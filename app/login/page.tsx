@@ -20,6 +20,14 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+
+    const handleDemoLogin = async (demoId: number) => {
+        const fd = new FormData();
+        fd.set("email", `demo${demoId}@breaktheblock.com`);
+        fd.set("password", "DemoUser123!");
+        await handleSubmit(fd);
+    };
 
     async function handleSubmit(formData: FormData) {
         setIsLoading(true);
@@ -50,6 +58,40 @@ export default function LoginPage() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+            <AnimatePresence>
+                {showWelcomeModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="glass-card w-full max-w-md rounded-3xl p-6 shadow-2xl overflow-hidden relative"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand" />
+                            <h2 className="text-2xl font-black mb-3">Welcome, Judges & Visitors! 👋</h2>
+                            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                                If you're just here to check out the platform, you don't need to use your real email. Feel free to use a temporary email service like <a href="https://temp-mail.org/" target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold">TempMail</a> or <a href="https://10minutemail.com/" target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold">10MinuteMail</a> to sign up.
+                            </p>
+                            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 mb-6">
+                                <p className="text-xs font-medium text-primary-foreground/80">
+                                    <span className="font-bold text-primary">Pro Tip:</span> We've also created 10 pre-populated demo accounts for judges. You can access them directly from the login screen!
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowWelcomeModal(false)}
+                                className="w-full bg-foreground text-background font-bold py-3 rounded-xl hover:bg-foreground/90 transition-colors"
+                            >
+                                Got it, let's go!
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className="absolute left-1/2 top-0 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
                 <div className="absolute bottom-0 right-0 h-[400px] w-[400px] translate-x-1/4 translate-y-1/4 rounded-full bg-accent/10 blur-[100px]" />
@@ -232,6 +274,26 @@ export default function LoginPage() {
                                         </>
                                     )}
                                 </button>
+
+                                {isLogin && (
+                                    <div className="mt-2 pt-4 border-t border-border">
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center mb-3">Demo Accounts (For Judges)</p>
+                                        <div className="grid grid-cols-5 gap-2">
+                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                                                <button
+                                                    key={num}
+                                                    type="button"
+                                                    onClick={() => handleDemoLogin(num)}
+                                                    disabled={isLoading}
+                                                    className="flex items-center justify-center py-2 px-1 rounded-xl bg-muted/50 hover:bg-muted border border-border transition-colors text-xs font-bold disabled:opacity-50 text-foreground/80 hover:text-foreground"
+                                                    title={`Login as Demo User ${num}`}
+                                                >
+                                                    D{num}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </form>
                         </>
                     )}
