@@ -1,34 +1,46 @@
-"use client";
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
+import { AuthInitializer } from "@/components/shared/AuthInitializer";
+import { AppShell } from "@/components/shared/AppShell";
+import type { MockUser } from "@/lib/mockData";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { getMockSession } from "@/lib/mock-auth";
-import { useAppStore } from "@/store";
-import { Sidebar } from "@/components/shared/Sidebar";
-import { Topbar } from "@/components/shared/Topbar";
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+    const supabase = await createClient();
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
-    const { setUser } = useAppStore();
+    // 1. Verify Authentication
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    useEffect(() => {
-        const session = getMockSession();
-        if (!session) {
-            router.replace("/login");
-        } else {
-            setUser(session);
-        }
-    }, [router, setUser]);
+    if (error || !user) {
+        redirect("/login");
+    }
+
+    // 2. Fetch Profile Data
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+    // 3. Map to Store Structure
+    const mappedUser: MockUser | null = profile ? {
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        points: profile.points || 0,
+        streak: profile.streak || 0,
+        avatar: profile.avatar_url || `https://api.dicebear.com/9.x/avataaars/svg?seed=${profile.name}`,
+        geo: "Global Engine",
+        badges: []
+    } : null;
+
+    if (!mappedUser) {
+        redirect("/login");
+    }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-background">
-            <Sidebar />
-            <div className="flex flex-1 flex-col overflow-hidden">
-                <Topbar />
-                <main className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
-                    {children}
-                </main>
-            </div>
-        </div>
+        <>
+            <AuthInitializer serverUser={mappedUser} />
+            <AppShell>{children}</AppShell>
+        </>
     );
 }
