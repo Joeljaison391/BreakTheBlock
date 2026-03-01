@@ -5,13 +5,22 @@ import { UserAvatar } from "@/components/shared/UserAvatar";
 import { useAppStore } from "@/store";
 import { Zap, Flame, Settings, MapPin, CheckCircle2, Image as ImageIcon } from "lucide-react";
 import { formatPoints, cn } from "@/lib/utils";
-import { currentUser } from "@/lib/mockData";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 export default function ProfilePage() {
-    const user = useAppStore((s) => s.user) || currentUser;
+    const user = useAppStore((s) => s.user);
     const [activeTab, setActiveTab] = useState<"Timeline" | "Trophy Room">("Timeline");
+
+    if (!user) {
+        return (
+            <PageTransition>
+                <div className="flex items-center justify-center h-[50vh]">
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+            </PageTransition>
+        );
+    }
 
     return (
         <PageTransition>

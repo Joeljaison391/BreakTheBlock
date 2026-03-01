@@ -3,7 +3,7 @@
 import { PageTransition } from "@/components/shared/PageTransition";
 import { AnimatedStone } from "@/components/shared/AnimatedStone";
 import { useAppStore } from "@/store";
-import { myGoals, feedProofs } from "@/lib/mockData";
+
 import { Target, ArrowRight, Zap } from "lucide-react";
 import Link from "next/link";
 import { ProofCard } from "@/components/shared/ProofCard";
@@ -13,7 +13,7 @@ import { TourOverlay } from "@/components/onboarding/TourOverlay";
 import { useState, useEffect } from "react";
 
 export default function HomePage() {
-    const { groupStoneProgress, hasSeenOnboarding, completeOnboarding } = useAppStore();
+    const { groupStoneProgress, hasSeenOnboarding, completeOnboarding, goals } = useAppStore();
     const router = useRouter();
 
     const [showDevNote, setShowDevNote] = useState(false);
@@ -98,7 +98,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-                        {myGoals.map((g) => (
+                        {goals.length > 0 ? goals.map((g) => (
                             <div key={g.id} className="min-w-[240px] snap-center glass-card border border-border/50 rounded-2xl p-4 flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
                                     <div className="h-8 w-8 rounded-lg bg-accent/20 flex items-center justify-center">
@@ -113,7 +113,11 @@ export default function HomePage() {
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="min-w-[240px] glass-card border border-dashed border-border rounded-2xl p-4 text-center">
+                                <p className="text-sm text-muted-foreground">No goals yet. Create one!</p>
+                            </div>
+                        )}
                     </div>
                 </section>
 
@@ -121,11 +125,11 @@ export default function HomePage() {
                 <section className="flex flex-col gap-4">
                     <h3 className="font-bold text-lg px-1">Recent Activity</h3>
                     <div className="flex flex-col gap-4">
-                        {feedProofs.slice(0, 3).map((proof) => (
-                            <ProofCard key={proof.id} proof={proof} />
-                        ))}
+                        <div className="glass-card rounded-2xl p-6 text-center">
+                            <p className="text-sm text-muted-foreground">Your community feed will appear here once people start posting proofs.</p>
+                        </div>
                     </div>
-                    <Link href="/groups" className="w-full py-3 text-center text-sm font-bold text-muted-foreground hover:text-foreground">
+                    <Link href="/feed" className="w-full py-3 text-center text-sm font-bold text-muted-foreground hover:text-foreground">
                         View full feed
                     </Link>
                 </section>
