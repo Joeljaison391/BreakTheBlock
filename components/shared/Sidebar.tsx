@@ -17,7 +17,7 @@ import { useAppStore } from "@/store";
 import { formatPoints } from "@/lib/utils";
 
 const navItems = [
-    { label: "Dashboard", href: "/", icon: LayoutDashboard },
+    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Goals", href: "/goals", icon: Target },
     { label: "Feed", href: "/feed", icon: Users },
     { label: "Leaderboard", href: "/leaderboard", icon: Trophy },

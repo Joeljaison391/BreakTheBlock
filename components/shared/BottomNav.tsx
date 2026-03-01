@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 const navItems = [
-    { label: "Home", href: "/", icon: LayoutDashboard },
+    { label: "Home", href: "/dashboard", icon: LayoutDashboard },
     { label: "Goals", href: "/goals", icon: Target },
     { label: "Start", href: "/friction", icon: Zap, isAction: true },
     { label: "Feed", href: "/feed", icon: Users },

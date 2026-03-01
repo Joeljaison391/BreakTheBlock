@@ -33,7 +33,8 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     // If the user is NOT authenticated and trying to access protected routes, redirect to /login
-    const isProtected = request.nextUrl.pathname.startsWith('/feed') ||
+    const isProtected = request.nextUrl.pathname.startsWith('/dashboard') ||
+        request.nextUrl.pathname.startsWith('/feed') ||
         request.nextUrl.pathname.startsWith('/goals') ||
         request.nextUrl.pathname.startsWith('/groups') ||
         request.nextUrl.pathname.startsWith('/leaderboard') ||
@@ -45,25 +46,10 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // Rewrite `/` to `/landing` for unauthenticated users
-    if (!user && request.nextUrl.pathname === '/' && process.env.NEXT_PUBLIC_MOCK_AUTH !== 'true') {
-        const url = request.nextUrl.clone();
-        url.pathname = '/landing';
-        const rewriteResponse = NextResponse.rewrite(url);
-        // Preserve any cookie updates
-        supabaseResponse.cookies.getAll().forEach((cookie) => {
-            rewriteResponse.cookies.set(cookie.name, cookie.value);
-        });
-        return rewriteResponse;
-    }
-
-    // Redirect `/landing` to `/` for authenticated users
+    // Redirect `/` to `/dashboard` for authenticated users
     if (user && request.nextUrl.pathname === '/') {
-        // Wait, no, we want to redirect if they explicitly visit `/landing`.
-    }
-    if (user && request.nextUrl.pathname === '/landing') {
         const url = request.nextUrl.clone();
-        url.pathname = '/';
+        url.pathname = '/dashboard';
         return NextResponse.redirect(url);
     }
 
