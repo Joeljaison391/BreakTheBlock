@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { aiRateLimit } from "@/lib/ratelimit";
 import OpenAI from "openai";
 import { z } from "zod";
 
@@ -28,22 +27,7 @@ export async function POST(req: NextRequest) {
             return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
         }
 
-        // 2. Rate Limit Verification
-        const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
-
-        if (process.env.REDIS_URL) {
-            const { success, limit, reset, remaining } = await aiRateLimit.limit(`ai_${ip}`);
-            if (!success) {
-                return new Response(JSON.stringify({ error: "Too many AI requests. Please slow down." }), {
-                    status: 429,
-                    headers: {
-                        "X-RateLimit-Limit": limit.toString(),
-                        "X-RateLimit-Remaining": remaining.toString(),
-                        "X-RateLimit-Reset": reset.toString(),
-                    },
-                });
-            }
-        }
+        // 2. (Redis Rate Limiting Removed)
 
         // 3. Payload Validation
         const body = await req.json();

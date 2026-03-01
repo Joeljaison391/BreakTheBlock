@@ -3,7 +3,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import { headers } from "next/headers";
-import { uploadRateLimit } from "@/lib/ratelimit";
 import { createClient } from "@/utils/supabase/server";
 
 // 1. Initialize S3 Client exclusively for Backblaze B2
@@ -29,10 +28,6 @@ async function validateUploadRequest() {
     if (!userId) throw new Error("Unauthorized");
 
     const ip = (await headers()).get("x-forwarded-for") ?? "127.0.0.1";
-    if (process.env.REDIS_URL) {
-        const { success } = await uploadRateLimit.limit(`upload_${ip}`);
-        if (!success) throw new Error("Upload rate limit exceeded. Slow down.");
-    }
 
     return userId;
 }
