@@ -14,7 +14,9 @@ export async function getUserGroup() {
         .eq("user_id", user.id)
         .single();
 
-    return data?.groups || null;
+    // Supabase inferred types for joined tables sometimes infer an array.
+    // In our schema, a user is in one group, so we cast to any.
+    return (data?.groups as any) || null;
 }
 
 export async function fetchMessages(groupId: string) {
