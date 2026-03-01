@@ -32,7 +32,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
-            <body className={inter.variable}>
+            <body className={inter.variable} suppressHydrationWarning>
                 <ThemeProvider>
                     {children}
                     <Toaster

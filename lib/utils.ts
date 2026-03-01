@@ -13,7 +13,8 @@ export function formatDate(date: Date | string): string {
     }).format(new Date(date));
 }
 
-export function formatPoints(points: number): string {
+export function formatPoints(points: number | undefined): string {
+    if (points === undefined) return "0";
     if (points >= 1000) return `${(points / 1000).toFixed(1)}k`;
     return points.toString();
 }
