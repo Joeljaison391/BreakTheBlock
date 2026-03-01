@@ -341,6 +341,154 @@ export default function LandingPage() {
                 </div>
             </section>
 
+            {/* ═══════════ XP & POINTS ═══════════ */}
+            <section className="relative z-10 px-6 py-24 max-w-5xl mx-auto">
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    className="text-center mb-16"
+                >
+                    <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold uppercase tracking-widest mb-4">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        XP System
+                    </motion.div>
+                    <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-black tracking-tight">
+                        Every Action <span className="gradient-text">Earns XP</span>
+                    </motion.h2>
+                    <motion.p variants={fadeUp} custom={2} className="text-muted-foreground mt-4 max-w-2xl mx-auto text-lg">
+                        Structured point distribution with daily caps to reward consistency over grinding.
+                    </motion.p>
+                </motion.div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[
+                        { emoji: "🔓", action: "Daily Login", pts: "+10 XP", cap: "1x/day" },
+                        { emoji: "⚡", action: "Friction Breaker", pts: "+25 XP", cap: "3x/day" },
+                        { emoji: "📸", action: "Proof Upload", pts: "+15 XP", cap: "3x/day" },
+                        { emoji: "✅", action: "Goal Step", pts: "+10 XP", cap: "10x/day" },
+                        { emoji: "🏆", action: "Goal Complete", pts: "+50 XP", cap: "No limit" },
+                        { emoji: "❤️", action: "Receive Like", pts: "+2 XP", cap: "10x/day" },
+                        { emoji: "🔥", action: "Streak Bonus", pts: "×2/day", cap: "Cap 30" },
+                        { emoji: "📝", action: "Journal Entry", pts: "+5 XP", cap: "3x/day" },
+                    ].map((item, i) => (
+                        <motion.div
+                            key={item.action}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: "-30px" }}
+                            variants={fadeUp}
+                            custom={i}
+                            className="glass-card rounded-xl p-4 border border-border text-center"
+                        >
+                            <div className="text-2xl mb-2">{item.emoji}</div>
+                            <div className="text-xs font-bold text-foreground">{item.action}</div>
+                            <div className="text-lg font-black gradient-text mt-1">{item.pts}</div>
+                            <div className="text-[10px] text-muted-foreground font-medium mt-0.5">{item.cap}</div>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+
+            {/* ═══════════ LEVEL SYSTEM ═══════════ */}
+            <section className="relative z-10 px-6 py-24 max-w-5xl mx-auto">
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    className="text-center mb-16"
+                >
+                    <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-400/10 border border-purple-400/20 text-purple-400 text-xs font-bold uppercase tracking-widest mb-4">
+                        <Trophy className="w-3.5 h-3.5" />
+                        20 Levels
+                    </motion.div>
+                    <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-black tracking-tight">
+                        Level Up to <span className="gradient-text">Unlock Features</span>
+                    </motion.h2>
+                    <motion.p variants={fadeUp} custom={2} className="text-muted-foreground mt-4 max-w-2xl mx-auto text-lg">
+                        Higher levels unlock chat, groups, powerups, and more. Your XP is your passport.
+                    </motion.p>
+                </motion.div>
+
+                <div className="flex flex-col gap-3 max-w-2xl mx-auto">
+                    {[
+                        { lvl: 1, title: "Newbie", xp: "0", unlock: null, color: "border-border" },
+                        { lvl: 3, title: "Mover", xp: "150", unlock: "💬 Chat Unlocked", color: "border-blue-400" },
+                        { lvl: 5, title: "Breaker", xp: "500", unlock: "👥 Join Groups + 🛡️ Streak Shield", color: "border-secondary" },
+                        { lvl: 7, title: "Crusher", xp: "1,000", unlock: "🏗️ Create Groups", color: "border-accent" },
+                        { lvl: 10, title: "Warrior", xp: "2,500", unlock: "⚡ Powerups Available", color: "border-primary" },
+                        { lvl: 15, title: "Legend", xp: "7,500", unlock: "🔥 2x XP Powerup", color: "border-pink-400" },
+                        { lvl: 20, title: "Block Breaker", xp: "15,000", unlock: "👑 All Unlocks", color: "border-yellow-400" },
+                    ].map((item, i) => (
+                        <motion.div
+                            key={item.lvl}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: "-30px" }}
+                            variants={fadeUp}
+                            custom={i}
+                            className={`glass-card rounded-xl p-4 border-l-4 ${item.color} border border-border flex items-center gap-4`}
+                        >
+                            <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
+                                <span className="text-lg font-black gradient-text">{item.lvl}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-black text-sm">{item.title}</span>
+                                    <span className="text-[10px] text-muted-foreground font-medium">{item.xp} XP</span>
+                                </div>
+                                {item.unlock && (
+                                    <div className="text-xs text-primary font-bold mt-0.5">{item.unlock}</div>
+                                )}
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+
+            {/* ═══════════ POWERUPS ═══════════ */}
+            <section className="relative z-10 px-6 py-24 max-w-4xl mx-auto">
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    className="text-center mb-12"
+                >
+                    <motion.h2 variants={fadeUp} custom={0} className="text-3xl sm:text-4xl font-black tracking-tight">
+                        ⚡ <span className="gradient-text">Powerups</span>
+                    </motion.h2>
+                    <motion.p variants={fadeUp} custom={1} className="text-muted-foreground mt-4 max-w-lg mx-auto">
+                        Spend your hard-earned XP on tactical boosts.
+                    </motion.p>
+                </motion.div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <motion.div
+                        initial="hidden" whileInView="visible" viewport={{ once: true }}
+                        variants={fadeUp} custom={0}
+                        className="glass-card rounded-2xl p-6 border border-accent/30 relative overflow-hidden"
+                    >
+                        <div className="absolute top-3 right-3 text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full">Level 10+</div>
+                        <div className="text-4xl mb-3">⚡</div>
+                        <h3 className="text-lg font-black">Double XP</h3>
+                        <p className="text-sm text-muted-foreground mt-1">2x multiplier on all points earned for 1 hour.</p>
+                        <div className="mt-3 text-xs font-bold text-primary">Cost: 100 XP</div>
+                    </motion.div>
+
+                    <motion.div
+                        initial="hidden" whileInView="visible" viewport={{ once: true }}
+                        variants={fadeUp} custom={1}
+                        className="glass-card rounded-2xl p-6 border border-secondary/30 relative overflow-hidden"
+                    >
+                        <div className="absolute top-3 right-3 text-[10px] font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">Level 5+</div>
+                        <div className="text-4xl mb-3">🛡️</div>
+                        <h3 className="text-lg font-black">Streak Shield</h3>
+                        <p className="text-sm text-muted-foreground mt-1">Miss a day without losing your streak. Single use.</p>
+                        <div className="mt-3 text-xs font-bold text-primary">Cost: 75 XP</div>
+                    </motion.div>
+                </div>
+            </section>
+
             {/* ═══════════ COMMUNITY ═══════════ */}
             <section className="relative z-10 px-6 py-24 max-w-4xl mx-auto">
                 <motion.div
