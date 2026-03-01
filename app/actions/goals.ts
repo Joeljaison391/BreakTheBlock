@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { revalidatePath } from "next/cache";
 
 /**
  * Create a new goal in Supabase.
@@ -35,6 +36,8 @@ export async function createGoal(goal: {
             return { error: error.message, goal: null };
         }
         console.log("[createGoal] Success:", data.id);
+        revalidatePath("/goals");
+        revalidatePath("/");
         return { error: null, goal: data };
     } catch (e: any) {
         console.error("[createGoal] Unhandled error:", e);
@@ -91,6 +94,8 @@ export async function updateGoalAction(goalId: string, updates: {
             console.error("[updateGoalAction] DB error:", error);
             return { error: error.message };
         }
+        revalidatePath("/goals");
+        revalidatePath("/");
         return { error: null };
     } catch (e: any) {
         console.error("[updateGoalAction] Unhandled error:", e);
