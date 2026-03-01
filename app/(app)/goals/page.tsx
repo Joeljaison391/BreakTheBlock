@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Image as ImageIcon, Link2, FileText, CheckCircle } from "lucide-react";
+import { updateGoalAction } from "@/app/actions/goals";
+import { awardPoints } from "@/app/actions/points";
 
 // --- Subcomponents for specific Goal Types ---
 
@@ -59,17 +61,18 @@ function DailyHabitTracker({ goal }: { goal: Goal }) {
                             )}
                             onClick={() => {
                                 if (canCheck) {
-                                    updateGoal(goal.id, g => {
-                                        const newCompleted = [...(g.trackingConfig.completedDates || []), d.dateStr];
-                                        const newProgress = Math.min(100, Math.round((newCompleted.length / totalDays) * 100));
-                                        return {
-                                            ...g,
-                                            progress: newProgress,
-                                            trackingConfig: { ...g.trackingConfig, completedDates: newCompleted }
-                                        };
-                                    });
-                                    addPoints(15);
-                                    toast.success("Habit checked for today! +15 pts");
+                                    const newCompleted = [...completedDates, d.dateStr];
+                                    const newProgress = Math.min(100, Math.round((newCompleted.length / totalDays) * 100));
+                                    const newConfig = { ...config, completedDates: newCompleted };
+                                    updateGoal(goal.id, g => ({
+                                        ...g,
+                                        progress: newProgress,
+                                        trackingConfig: newConfig
+                                    }));
+                                    // Persist to DB + award XP
+                                    updateGoalAction(goal.id, { tracking_config: newConfig, progress: newProgress });
+                                    awardPoints("GOAL_STEP");
+                                    toast.success("Habit checked for today!");
                                 } else if (d.isFuture) {
                                     toast.error("You can only check off today's habit!");
                                 } else if (d.isPast && !isCompleted) {
@@ -110,21 +113,21 @@ function CountTargetTracker({ goal }: { goal: Goal }) {
     const percentage = Math.min(100, Math.round((current / target) * 100));
 
     const handleUpdate = (amt: number) => {
-        updateGoal(goal.id, (g) => {
-            const newCurrent = Math.max(0, (g.trackingConfig.currentNumber || 0) + amt);
-            const newProgress = Math.min(100, Math.round((newCurrent / target) * 100));
-            return {
-                ...g,
-                progress: newProgress,
-                trackingConfig: { ...g.trackingConfig, currentNumber: newCurrent }
-            };
-        });
+        const newCurrent = Math.max(0, current + amt);
+        const newProgress = Math.min(100, Math.round((newCurrent / target) * 100));
+        const newConfig = { ...config, currentNumber: newCurrent };
+        updateGoal(goal.id, (g) => ({
+            ...g,
+            progress: newProgress,
+            trackingConfig: newConfig
+        }));
+        // Persist to DB
+        updateGoalAction(goal.id, { tracking_config: newConfig, progress: newProgress });
         if (amt > 0) {
-            addPoints(5);
-            toast.success("Target hit! +5 pts");
+            awardPoints("GOAL_STEP");
+            toast.success("Progress updated!");
         } else {
-            addPoints(-5);
-            toast("Removed progress! -5 pts");
+            toast("Removed progress");
         }
     };
 
@@ -160,16 +163,17 @@ function MultiStepTracker({ goal }: { goal: Goal }) {
         const step = steps.find(s => s.id === stepId);
         if (!step) return;
 
-        updateGoal(goal.id, (g) => {
-            const newSteps = (g.trackingConfig.steps || []).map(s => s.id === stepId ? { ...s, completed: !s.completed } : s);
-            const completedCount = newSteps.filter(s => s.completed).length;
-            const newProgress = Math.min(100, Math.round((completedCount / newSteps.length) * 100));
-            return { ...g, progress: newProgress, trackingConfig: { ...g.trackingConfig, steps: newSteps } };
-        });
+        const newSteps = steps.map(s => s.id === stepId ? { ...s, completed: !s.completed } : s);
+        const completedCount = newSteps.filter(s => s.completed).length;
+        const newProgress = Math.min(100, Math.round((completedCount / newSteps.length) * 100));
+        const newConfig = { ...goal.trackingConfig, steps: newSteps };
+        updateGoal(goal.id, (g) => ({ ...g, progress: newProgress, trackingConfig: newConfig }));
+        // Persist to DB
+        updateGoalAction(goal.id, { tracking_config: newConfig, progress: newProgress });
 
         if (!step.completed) {
-            addPoints(25);
-            toast.success("Milestone achieved! +25 pts");
+            awardPoints("GOAL_STEP");
+            toast.success("Milestone achieved!");
         }
     };
     return (

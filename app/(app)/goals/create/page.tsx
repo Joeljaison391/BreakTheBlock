@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Confetti } from "@/components/shared/Confetti";
 
+import { createGoal } from "@/app/actions/goals";
+import { awardPoints } from "@/app/actions/points";
+
 const GOAL_TYPES: { id: GoalType; label: string; icon: any; desc: string }[] = [
     { id: "DailyHabit", label: "Daily Habit", icon: CalendarDays, desc: "Check a box every day (e.g. Meditate)" },
     { id: "CountTarget", label: "Number Target", icon: Target, desc: "Hit a specific number (e.g. Read 10 books)" },
@@ -23,6 +26,7 @@ export default function CreateGoalPage() {
     const { addGoal } = useAppStore();
 
     const [step, setStep] = useState(1);
+    const [saving, setSaving] = useState(false);
 
     // Form State
     const [type, setType] = useState<GoalType | null>(null);
@@ -50,8 +54,9 @@ export default function CreateGoalPage() {
         setMultiSteps(multiSteps.map(s => s.id === id ? { ...s, title: val } : s));
     };
 
-    const handleCreate = () => {
-        if (!type || !title.trim()) return;
+    const handleCreate = async () => {
+        if (!type || !title.trim() || saving) return;
+        setSaving(true);
 
         let trackingConfig: any = {};
         if (type === "DailyHabit") {
@@ -66,22 +71,39 @@ export default function CreateGoalPage() {
         if (type === "ProofOnly") trackingConfig.requiresProof = true;
         if (type === "Journal") trackingConfig.minEntriesPerMonth = 30;
 
-        const newGoal: Goal = {
-            id: `g_${Date.now()}`,
+        // Save to Supabase
+        const result = await createGoal({
             title,
             description,
             type,
-            trackingConfig,
-            enableLogging,
-            postCompletionProofType,
+            tracking_config: trackingConfig,
+            enable_logging: enableLogging,
+            post_completion_proof_type: postCompletionProofType,
+        });
+
+        if (result.error) {
+            toast.error(result.error);
+            setSaving(false);
+            return;
+        }
+
+        // Add to local store for immediate UI update
+        const dbGoal = result.goal;
+        addGoal({
+            id: dbGoal.id,
+            title: dbGoal.title,
+            description: dbGoal.description || "",
+            type: dbGoal.type,
+            trackingConfig: dbGoal.tracking_config || {},
+            enableLogging: dbGoal.enable_logging || false,
+            postCompletionProofType: dbGoal.post_completion_proof_type || "none",
             logs: [],
             progress: 0,
             pointsEarned: 0,
-            lastUpdated: new Date().toISOString(),
+            lastUpdated: dbGoal.created_at,
             endOfMonth: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString()
-        };
+        });
 
-        addGoal(newGoal);
         setShowConfetti(true);
         toast.success("Goal Created Successfully!");
 

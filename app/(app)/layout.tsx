@@ -21,13 +21,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         .eq("id", user.id)
         .single();
 
-    // 3. Map to Store Structure
+    // 3. Fetch User's Goals from DB
+    const { data: goals } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+    // 4. Map profile to store format
     const mappedUser: MockUser | null = profile ? {
         id: profile.id,
         name: profile.name,
         email: profile.email,
         points: profile.points || 0,
         streak: profile.streak || 0,
+        level: profile.level || 1,
         avatar: profile.avatar_url || `https://api.dicebear.com/9.x/avataaars/svg?seed=${profile.name}`,
         geo: "Global Engine",
         badges: []
@@ -37,9 +45,25 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         redirect("/login");
     }
 
+    // 5. Map goals from DB snake_case to store camelCase
+    const mappedGoals = (goals || []).map((g: any) => ({
+        id: g.id,
+        title: g.title,
+        description: g.description || "",
+        type: g.type,
+        trackingConfig: g.tracking_config || {},
+        enableLogging: g.enable_logging || false,
+        postCompletionProofType: g.post_completion_proof_type || "none",
+        logs: [],
+        progress: g.progress || 0,
+        pointsEarned: g.points_earned || 0,
+        lastUpdated: g.updated_at || g.created_at,
+        endOfMonth: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString(),
+    }));
+
     return (
         <>
-            <AuthInitializer serverUser={mappedUser} />
+            <AuthInitializer serverUser={mappedUser} serverGoals={mappedGoals} />
             <AppShell>{children}</AppShell>
         </>
     );

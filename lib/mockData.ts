@@ -10,6 +10,7 @@ export interface MockUser {
     points: number;
     geo: string;
     streak: number;
+    level: number;
     badges: Badge[];
 }
 
@@ -128,6 +129,7 @@ export const currentUser: MockUser = {
     points: 1250,
     geo: "San Francisco, CA",
     streak: 12,
+    level: 1,
     badges: [
         { id: "b1", name: "Early Bird", icon: "🌅", description: "Logged 5 proofs before 8 AM" },
         { id: "b2", name: "Stone Cracker", icon: "🪨", description: "Contributed to breaking 3 group stones" },
