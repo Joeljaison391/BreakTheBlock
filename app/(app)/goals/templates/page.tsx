@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { goalTemplates, Goal } from "@/lib/mockData";
-import { ChevronLeft, Download, Plus, Target, CalendarDays, ListOrdered, Camera, BookOpen } from "lucide-react";
+import { ChevronLeft, Download, Plus, Target, CalendarDays, ListOrdered, Camera, BookOpen, Loader2 } from "lucide-react";
 import { useAppStore } from "@/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { createGoal } from "@/app/actions/goals";
 
 const TYPE_ICONS: Record<string, any> = {
     "DailyHabit": CalendarDays,
@@ -27,25 +29,55 @@ const TYPE_LABELS: Record<string, string> = {
 export default function GoalTemplatesPage() {
     const router = useRouter();
     const { addGoal } = useAppStore();
+    const [activatingId, setActivatingId] = useState<string | null>(null);
 
-    const handleActivate = (template: typeof goalTemplates[0]) => {
-        const newGoal: Goal = {
-            id: `g_tpl_${Date.now()}`,
-            title: template.title,
-            description: template.description,
-            type: template.type,
-            trackingConfig: JSON.parse(JSON.stringify(template.trackingConfig)), // deep copy for nested steps
-            enableLogging: true, // default templates to true
-            logs: [],
-            progress: 0,
-            pointsEarned: 0,
-            lastUpdated: new Date().toISOString(),
-            endOfMonth: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString()
-        };
+    const handleActivate = async (template: typeof goalTemplates[0]) => {
+        if (activatingId) return;
+        setActivatingId(template.id);
 
-        addGoal(newGoal);
-        toast.success(`Activated: ${template.title}!`);
-        router.push("/goals");
+        try {
+            // Deep copy tracking config
+            const trackingConfig = JSON.parse(JSON.stringify(template.trackingConfig));
+
+            // Persist to Supabase
+            const result = await createGoal({
+                title: template.title,
+                description: template.description,
+                type: template.type,
+                tracking_config: trackingConfig,
+                enable_logging: true,
+                post_completion_proof_type: "none",
+            });
+
+            if (result.error) {
+                toast.error(result.error);
+                setActivatingId(null);
+                return;
+            }
+
+            // Add to local store for immediate UI update
+            const dbGoal = result.goal;
+            addGoal({
+                id: dbGoal.id,
+                title: dbGoal.title,
+                description: dbGoal.description || "",
+                type: dbGoal.type,
+                trackingConfig: dbGoal.tracking_config || {},
+                enableLogging: dbGoal.enable_logging || false,
+                postCompletionProofType: dbGoal.post_completion_proof_type || "none",
+                logs: [],
+                progress: 0,
+                pointsEarned: 0,
+                lastUpdated: dbGoal.created_at,
+                endOfMonth: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString()
+            });
+
+            toast.success(`Activated: ${template.title}!`);
+            router.push("/goals");
+        } catch (e) {
+            toast.error("Failed to activate template");
+            setActivatingId(null);
+        }
     };
 
     return (
@@ -69,6 +101,7 @@ export default function GoalTemplatesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {goalTemplates.map((tpl, i) => {
                         const Icon = TYPE_ICONS[tpl.type] || Target;
+                        const isActivating = activatingId === tpl.id;
                         return (
                             <motion.div
                                 key={tpl.id}
@@ -102,10 +135,11 @@ export default function GoalTemplatesPage() {
                                     </div>
                                     <button
                                         onClick={() => handleActivate(tpl)}
-                                        className="flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-xl font-bold text-sm active:scale-95 transition-transform shadow-md hover:opacity-90"
+                                        disabled={!!activatingId}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-xl font-bold text-sm active:scale-95 transition-transform shadow-md hover:opacity-90 disabled:opacity-50"
                                     >
-                                        <Plus className="w-4 h-4" />
-                                        Activate
+                                        {isActivating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                        {isActivating ? "Saving..." : "Activate"}
                                     </button>
                                 </div>
                             </motion.div>
