@@ -1,25 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { AnimatedStone } from "@/components/shared/AnimatedStone";
 import { useAppStore } from "@/store";
 import Link from "next/link";
-import { Trophy, Globe, MapPin, Users, ChevronRight, ArrowLeft, Plus } from "lucide-react";
+import { Trophy, Globe, MapPin, Users, ChevronRight, ArrowLeft, Plus, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn, formatPoints } from "@/lib/utils";
+import { fetchGroups, fetchRegions, getUserGroup } from "@/app/actions/groups";
 
 type LeaderboardTab = "global" | "region" | "group";
 
 export default function LeaderboardPage() {
-    const { groups, regions, groupStoneProgress, totalMonthlyGoals, globalPointsThisMonth, user } = useAppStore();
+    const { groupStoneProgress, totalMonthlyGoals, globalPointsThisMonth, user } = useAppStore();
     const [lbTab, setLbTab] = useState<LeaderboardTab>("group");
+    const [loading, setLoading] = useState(true);
 
-    const MY_REGION_ID = groups[0]?.regionId || regions[0]?.id || "";
-    const MY_GROUP_ID = groups[0]?.id || "";
+    // Data from Supabase
+    const [groups, setGroups] = useState<any[]>([]);
+    const [regions, setRegions] = useState<any[]>([]);
+    const [myGroup, setMyGroup] = useState<any>(null);
 
-    const [selectedRegionId, setSelectedRegionId] = useState<string>(MY_REGION_ID);
-    const [selectedGroupId, setSelectedGroupId] = useState<string>(MY_GROUP_ID);
+    useEffect(() => {
+        async function load() {
+            const [g, r, ug] = await Promise.all([fetchGroups(), fetchRegions(), getUserGroup()]);
+            setGroups(g);
+            setRegions(r);
+            setMyGroup(ug);
+            setLoading(false);
+        }
+        load();
+    }, []);
+
+    const MY_REGION_ID = myGroup?.region_id || regions[0]?.id || "";
+    const MY_GROUP_ID = myGroup?.id || "";
+
+    const [selectedRegionId, setSelectedRegionId] = useState<string>("");
+    const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+
+    // Set defaults once data loads
+    useEffect(() => {
+        if (!loading) {
+            setSelectedRegionId(MY_REGION_ID);
+            setSelectedGroupId(MY_GROUP_ID);
+        }
+    }, [loading, MY_REGION_ID, MY_GROUP_ID]);
+
+    if (loading) {
+        return (
+            <PageTransition>
+                <div className="flex items-center justify-center h-[50vh]">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+            </PageTransition>
+        );
+    }
 
     return (
         <PageTransition>
@@ -94,7 +130,7 @@ export default function LeaderboardPage() {
                                     </div>
 
                                     <div className="glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-card to-muted/20">
-                                        <AnimatedStone progress={group.stoneProgress || 0} size="sm" showText />
+                                        <AnimatedStone progress={group.stone_progress || 0} size="sm" showText />
                                         <h3 className="mt-4 font-black text-2xl">{group.name}</h3>
                                         <div className="flex gap-4 mt-2 mb-2">
                                             <div className="flex flex-col items-center">
@@ -103,7 +139,7 @@ export default function LeaderboardPage() {
                                             </div>
                                             <div className="flex flex-col items-center border-l border-border pl-4">
                                                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Members</span>
-                                                <span className="font-black text-foreground">{group.memberCount || 0}</span>
+                                                <span className="font-black text-foreground">{group.member_count || 0}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -145,7 +181,7 @@ export default function LeaderboardPage() {
                                 );
                             }
 
-                            const rGroups = groups.filter(g => g.regionId === selectedRegionId);
+                            const rGroups = groups.filter(g => g.region_id === selectedRegionId);
 
                             return (
                                 <>
@@ -161,7 +197,7 @@ export default function LeaderboardPage() {
                                     </div>
 
                                     <div className="glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-card to-muted/20 border-primary/20">
-                                        <AnimatedStone progress={region.stoneProgress || 0} size="sm" showText colorOverride="#e83f3f" />
+                                        <AnimatedStone progress={region.stone_progress || 0} size="sm" showText colorOverride="#e83f3f" />
                                         <h3 className="mt-4 font-black text-2xl">{region.name}</h3>
                                         <div className="flex gap-4 mt-2 mb-2">
                                             <div className="flex flex-col items-center">
@@ -170,7 +206,7 @@ export default function LeaderboardPage() {
                                             </div>
                                             <div className="flex flex-col items-center border-l border-border pl-4">
                                                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Members</span>
-                                                <span className="font-black text-foreground">{region.memberCount || 0}</span>
+                                                <span className="font-black text-foreground">{region.member_count || 0}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -187,7 +223,7 @@ export default function LeaderboardPage() {
                                                     <span className={cn("text-xs font-black w-4 text-center", i === 0 ? "text-primary" : "text-muted-foreground")}>{i + 1}</span>
                                                     <div className="flex flex-col">
                                                         <span className="font-bold text-sm tracking-tight">{g.name}</span>
-                                                        <span className="text-[10px] text-muted-foreground font-medium">{g.memberCount || 0} members</span>
+                                                        <span className="text-[10px] text-muted-foreground font-medium">{g.member_count || 0} members</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
@@ -242,7 +278,7 @@ export default function LeaderboardPage() {
                                         <Globe className={cn("w-5 h-5", i === 0 ? "text-primary drop-shadow-[0_0_8px_rgba(255,107,53,0.5)]" : "text-muted-foreground")} />
                                         <div className="flex flex-col">
                                             <span className="font-bold text-sm tracking-tight">{r.name}</span>
-                                            <span className="text-[10px] text-muted-foreground font-medium">{r.memberCount || 0} active breakers</span>
+                                            <span className="text-[10px] text-muted-foreground font-medium">{r.member_count || 0} active breakers</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
